@@ -3,11 +3,11 @@ import sys
 
 sys.path.append(os.path.join(os.path.realpath(__file__), 'ivport'))
 
-import ivport.picamera
+import ivport
 
 
 def capture(camera):
-    cmd = f'raspistill -t 10 -o still_CAM{camera}.jpg'
+    cmd = f'raspistill -t 10 -o still_CAM' + camera + '.jpg'
     os.system(cmd)
 
 
