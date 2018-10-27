@@ -4,7 +4,7 @@ import time
 
 sys.path.append(os.path.join(os.path.realpath(__file__), 'ivport'))
 
-import ivport
+import ivport.ivport
 
 timeout_seconds = 30
 picamera_capture_interval = 5
