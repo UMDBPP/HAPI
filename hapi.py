@@ -12,6 +12,12 @@ from ctypes import *
 
 imu_lib = cdll.LoadLibrary('../lib/liblsm9ds1cwrapper.so')
 
+# define seconds for which script will run before exiting
+timeout_seconds = 6000
+
+# define seconds between camera captures
+picamera_capture_interval = 15
+
 # define path to log directory
 log_dir = os.path.join('/home/pi/Desktop', 'hapi_log', time.strftime('%Y%m%d_%H%M%S_%Z'))
 
@@ -19,6 +25,50 @@ log_dir = os.path.join('/home/pi/Desktop', 'hapi_log', time.strftime('%Y%m%d_%H%
 cam_logfile_path = os.path.join(log_dir, 'cam.csv')
 imu_logfile_path = os.path.join(log_dir, 'imu.csv')
 rtc_logfile_path = os.path.join(log_dir, 'rtc.csv')
+
+# set return types for IMU library functions
+imu_lib.lsm9ds1_create.argtypes = []
+imu_lib.lsm9ds1_create.restype = c_void_p
+imu_lib.lsm9ds1_begin.argtypes = [c_void_p]
+imu_lib.lsm9ds1_begin.restype = None
+imu_lib.lsm9ds1_calibrate.argtypes = [c_void_p]
+imu_lib.lsm9ds1_calibrate.restype = None
+imu_lib.lsm9ds1_gyroAvailable.argtypes = [c_void_p]
+imu_lib.lsm9ds1_gyroAvailable.restype = c_int
+imu_lib.lsm9ds1_accelAvailable.argtypes = [c_void_p]
+imu_lib.lsm9ds1_accelAvailable.restype = c_int
+imu_lib.lsm9ds1_magAvailable.argtypes = [c_void_p]
+imu_lib.lsm9ds1_magAvailable.restype = c_int
+imu_lib.lsm9ds1_readGyro.argtypes = [c_void_p]
+imu_lib.lsm9ds1_readGyro.restype = c_int
+imu_lib.lsm9ds1_readAccel.argtypes = [c_void_p]
+imu_lib.lsm9ds1_readAccel.restype = c_int
+imu_lib.lsm9ds1_readMag.argtypes = [c_void_p]
+imu_lib.lsm9ds1_readMag.restype = c_int
+imu_lib.lsm9ds1_getGyroX.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getGyroX.restype = c_float
+imu_lib.lsm9ds1_getGyroY.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getGyroY.restype = c_float
+imu_lib.lsm9ds1_getGyroZ.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getGyroZ.restype = c_float
+imu_lib.lsm9ds1_getAccelX.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getAccelX.restype = c_float
+imu_lib.lsm9ds1_getAccelY.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getAccelY.restype = c_float
+imu_lib.lsm9ds1_getAccelZ.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getAccelZ.restype = c_float
+imu_lib.lsm9ds1_getMagX.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getMagX.restype = c_float
+imu_lib.lsm9ds1_getMagY.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getMagY.restype = c_float
+imu_lib.lsm9ds1_getMagZ.argtypes = [c_void_p]
+imu_lib.lsm9ds1_getMagZ.restype = c_float
+imu_lib.lsm9ds1_calcGyro.argtypes = [c_void_p, c_float]
+imu_lib.lsm9ds1_calcGyro.restype = c_float
+imu_lib.lsm9ds1_calcAccel.argtypes = [c_void_p, c_float]
+imu_lib.lsm9ds1_calcAccel.restype = c_float
+imu_lib.lsm9ds1_calcMag.argtypes = [c_void_p, c_float]
+imu_lib.lsm9ds1_calcMag.restype = c_float
 
 # write headers to log files
 with open(cam_logfile_path, 'w') as cam_logfile:
@@ -29,12 +79,6 @@ with open(imu_logfile_path, 'w') as imu_logfile:
 
 with open(rtc_logfile_path, 'w') as rtc_logfile:
     rtc_logfile.write('sys_time,rtc_time')
-
-# define seconds for which script will run before exiting
-timeout_seconds = 6000
-
-# define seconds between camera captures
-picamera_capture_interval = 15
 
 
 # function that calls shell command to take still from current picamera
