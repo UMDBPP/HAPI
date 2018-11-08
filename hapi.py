@@ -10,7 +10,7 @@ import ivport
 # import IMU library
 from ctypes import *
 
-imu_lib = cdll.LoadLibrary('../lib/liblsm9ds1cwrapper.so')
+imu_lib = cdll.LoadLibrary('/home/pi/Desktop/LSM9DS1_RaspberryPi_Library/lib/liblsm9ds1cwrapper.so')
 
 # define seconds for which script will run before exiting
 timeout_seconds = 6000
@@ -20,6 +20,9 @@ picamera_capture_interval = 15
 
 # define path to log directory
 log_dir = os.path.join('/home/pi/Desktop', 'hapi_log', time.strftime('%Y%m%d_%H%M%S_%Z'))
+
+# create log dir
+os.mkdir(log_dir)
 
 # define log filenames
 cam_logfile_path = os.path.join(log_dir, 'cam.csv')
@@ -120,12 +123,12 @@ imu_lib.lsm9ds1_begin(imu)
 
 if imu_lib.lsm9ds1_begin(imu) == 0:
     print('Failed to communicate with LSM9DS1.')
-quit()
+    quit()
 
 imu_lib.lsm9ds1_calibrate(imu)
 
 while time.time() < logging_start_time + timeout_seconds:
-    imu_data = get_imu_data()
+    imu_data = get_imu_data(imu)
 
     with open(imu_logfile_path, 'a') as imu_logfile:
         imu_logfile.write(
