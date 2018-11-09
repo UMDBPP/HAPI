@@ -76,10 +76,8 @@ imu_lib.lsm9ds1_calcMag.restype = c_float
 # write headers to log files
 with open(cam_logfile_path, 'w') as cam_logfile:
     cam_logfile.write('sys_time,camera,file_path')
-
 with open(imu_logfile_path, 'w') as imu_logfile:
     imu_logfile.write('sys_time,gyro_x,gyro_y,gyro_z,accel_x,accel_y,accel_z,mag_x,mag_y,mag_z')
-
 with open(rtc_logfile_path, 'w') as rtc_logfile:
     rtc_logfile.write('sys_time,rtc_time')
 
@@ -114,41 +112,45 @@ def get_imu_data(imu):
     return {'gyro': gyro, 'accel': accel, 'mag': mag}
 
 
+# note the time at which we start the program
 logging_start_time = time.time()
 
+# instantiate a new instance of an IVPort Multiplexer
 multiplexer = ivport.IVPort(ivport.TYPE_QUAD2)
 
+# instantiate a new instance of a LSM9DS1 IMU unit
 imu = imu_lib.lsm9ds1_create()
 imu_lib.lsm9ds1_begin(imu)
-
 if imu_lib.lsm9ds1_begin(imu) == 0:
     print('Failed to communicate with LSM9DS1.')
     quit()
-
 imu_lib.lsm9ds1_calibrate(imu)
 
+# loop in a while loop continually, until the current time has passed the timeout defined above
 while time.time() < logging_start_time + timeout_seconds:
+    # call the function we defined above to get the IMU data
     imu_data = get_imu_data(imu)
 
+    # write gathered data to the the log file as a new line
     with open(imu_logfile_path, 'a') as imu_logfile:
         imu_logfile.write(
-            '%s,%f,%f,%f,%f,%f,%f,%f,%f,%f' % (
+            '%s,%f,%f,%f,%f,%f,%f,%f,%f,%f \n' % (
                 time.strftime('%Y%m%d_%H%M%S_%Z'), imu_data['gyro']['x'], imu_data['gyro']['y'],
                 imu_data['gyro']['z'], imu_data['accel']['x'], imu_data['accel']['y'], imu_data['accel']['z'],
                 imu_data['mag']['x'], imu_data['mag']['y'], imu_data['mag']['z']))
 
+    # iterate through each camera and take a picture
     multiplexer.camera_change(1)
     capture_image(1)
-
     multiplexer.camera_change(2)
     capture_image(2)
-
     multiplexer.camera_change(3)
     capture_image(3)
-
     multiplexer.camera_change(4)
     capture_image(4)
 
+    # pause the program for the number of seconds defined above
     time.sleep(picamera_capture_interval)
 
+# shut down the multiplexer after the program finishes
 multiplexer.close()
